@@ -25,7 +25,7 @@ func New(config *Config) *Configor {
 // GetEnvironment get environment
 func (configor *Configor) GetEnvironment() string {
 	if configor.Environment == "" {
-		if env := os.Getenv("CONFIGOR_ENV"); env != "" {
+		if env := os.Getenv("ENVIRONMENT"); env != "" {
 			return env
 		}
 
@@ -36,6 +36,19 @@ func (configor *Configor) GetEnvironment() string {
 		return "development"
 	}
 	return configor.Environment
+}
+
+// LoadFromSingleFile loads a single file with map[string]Config (string is environment)
+func (configor *Configor) LoadFromSingleFile(config interface{}, file string) error {
+	if err := processFileWithEnvironment(config, file, configor.GetEnvironment()); err != nil {
+		return err
+	}
+
+	prefix := configor.getENVPrefix(config)
+	if prefix == "-" {
+		return processTags(config)
+	}
+	return processTags(config, prefix)
 }
 
 // Load will unmarshal configurations to struct from files that you provide
@@ -61,4 +74,9 @@ func ENV() string {
 // Load will unmarshal configurations to struct from files that you provide
 func Load(config interface{}, files ...string) error {
 	return New(nil).Load(config, files...)
+}
+
+// LoadFromSingleFile loads a single file with map[string]Config (string is environment)
+func LoadFromSingleFile(config interface{}, file string) error {
+	return New(nil).LoadFromSingleFile(config, file)
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	yaml "gopkg.in/yaml.v1"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func (configor *Configor) getENVPrefix(config interface{}) string {
@@ -72,6 +72,28 @@ func (configor *Configor) getConfigurationFiles(files ...string) []string {
 		}
 	}
 	return results
+}
+
+func processFileWithEnvironment(config interface{}, file, environment string) error {
+	data, err := ioutil.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	var fullConfig map[string]interface{}
+	err = yaml.Unmarshal(data, &fullConfig)
+	if err != nil {
+		return err
+	}
+	cfg, ok := fullConfig[environment]
+	if !ok {
+		return fmt.Errorf("Environment %s not found in %s", environment, file)
+	}
+	// marshal and re-unmarshal into config interface passed from library user
+	b, err := yaml.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+	return yaml.Unmarshal(b, config)
 }
 
 func processFile(config interface{}, file string) error {
