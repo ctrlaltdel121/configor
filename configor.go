@@ -66,20 +66,6 @@ func (configor *Configor) Load(config interface{}, files ...string) error {
 	}
 }
 
-func (configor *Configor) LoadFromYAML(config interface{}, data []byte) error {
-	err := yaml.Unmarshal(data, config)
-	if err != nil {
-		return err
-	}
-
-	prefix := configor.getENVPrefix(config)
-	if prefix == "-" {
-		return configor.processTags(config)
-	}
-	return configor.processTags(config, prefix)
-}
-
-
 // ENV return environment
 func ENV() string {
 	return New(nil).GetEnvironment()
